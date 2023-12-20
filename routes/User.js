@@ -195,5 +195,9 @@ authRouter.patch("/verify-otp", async (req, res)=>{
 })
 
 
+authRouter.get("/logout", checkLogin, async (req, res)=>{})
+
+authRouter.patch("reset-password", async (req, res)=>{})
+
 
 export default authRouter;
