@@ -24,9 +24,13 @@ const UserSchema = new mongoose.Schema({
     },
 
     token: {
-                type: String,
-    }
+            type: String,
+    },
 
+    verificationCode: {
+            type: String,
+    },
+    
 })
 
 const User = mongoose.model("users", UserSchema);

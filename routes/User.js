@@ -11,8 +11,6 @@ const authRouter = express.Router();
 
 
 // signup:
-
-
 // authRouter.post("/signup", (req, res)=>{
 //     const {name, email, password, phone} =  req.body
 
@@ -60,7 +58,7 @@ authRouter.post("/signup", async (req, res)=>{
     const {name, email, password, phone} =  req.body 
 
     if(!name || !email || !password || !phone){
-        return customResponse(res, false, "Please fill all the fields", null)
+        return customResponse(res,400,false, "Please fill all the fields", null)
     }
     try{
        const foundUser = await User.findOne({email: email})
@@ -76,18 +74,18 @@ authRouter.post("/signup", async (req, res)=>{
             let token = uuidv4();
             nUser.token = token;
             let updatedUser = await nUser.save();
-            return customResponse(res, true, "User registered successfully", updatedUser)
+            return customResponse(res,200, true, "User registered successfully", updatedUser)
         }
        }
         
        else{
-        return customResponse(res, false, "User already exists", null)
+        return customResponse(res,400, false, "User already exists", null)
        }
 
     }
 
     catch(err){
-        console.log(err)
+        customResponse(res,500, false, "Something went wrong", null)
     }
     
               
@@ -99,12 +97,12 @@ authRouter.post("/login", async (req, res)=>{
     const {email, password} = req.body
 
     if(!email || !password){
-        return customResponse(res, false, "Please fill all the fields", null)
+        return customResponse(res,400, false, "Please fill all the fields", null)
     }
     try{
         const foundUser = await User.findOne({email:email}) 
         if(foundUser == null){
-            return customResponse(res, false, "User does not exist", null)
+            return customResponse(res,400, false, "User does not exist", null)
         }
         // check hashed password:
        const isMatch = await bcrypt.compare(password, foundUser.password)
@@ -112,28 +110,24 @@ authRouter.post("/login", async (req, res)=>{
         let token = uuidv4();
         foundUser.token = token;
         let updatedUser = await foundUser.save();
-           return customResponse(res, true, "User logged in successfully",  updatedUser)
+           return customResponse(res,200, true, "User logged in successfully",  updatedUser)
        }
        else{
-            return customResponse(res, false, "Invalid credentials", null)
+            return customResponse(res,400, false, "Invalid credentials", null)
         }
     }
 
     catch(err){
-        console.log(err)
+        customResponse(res,500, false, "Something went wrong", null)
     }
     
     
-
-
-
-
 })
 
 
 
 authRouter.get("/secret1",checkLogin, async (req, res)=>{
-     customResponse(res, true, "Bhargav is working with Raw", req.user)
+     customResponse(res,200, true, "Bhargav is working with Raw", req.user)
 })
 
 
@@ -146,7 +140,60 @@ authRouter.get("/secret2", async (req, res)=>{
       if(foundUser == null){
           return customResponse(res, false, "Invalid token", null)
       }
-      customResponse(res, true, "Bhargav is working with Raw", null)
+      customResponse(res,200, true, "Bhargav is working with Raw", null)
 })
+
+
+authRouter.post("/send-otp", async (req, res)=>{
+      let otp = "1234"
+
+      const {email} = req.body
+        if(!email){
+            return customResponse(res, false, "Please provide email", null)
+        }
+      const foundUser =  await User.findOne({email: email})
+
+      if(foundUser == null){
+          return customResponse(res, false, "User does not exist", null)
+      }
+      foundUser.verificationCode = otp; 
+      
+    let updatedUser = await foundUser.save();
+
+
+
+      // send the code to phone number:
+
+    customResponse(res,200, true, "OTP sent successfully", updatedUser)
+})
+
+
+authRouter.patch("/verify-otp", async (req, res)=>{
+    const {otp, newPassword, email} = req.body
+
+    if(!otp || !newPassword || !email){
+        return customResponse(res, false, "Please fill all the fields", null)
+    }
+    const foundUser = await User.findOne({email: email})
+
+    if(foundUser == null){
+        return customResponse(res, false, "User does not exist", null)
+    }
+
+    let savedOtp = foundUser.verificationCode;
+    if(savedOtp == otp){
+         // hash the password:
+            const hashedPassword = await bcrypt.hash(newPassword, 10)
+            foundUser.password = hashedPassword;
+            foundUser.verificationCode = null;
+            let updatedUser = await foundUser.save();
+            return customResponse(res,200, true, "Password updated successfully", updatedUser)
+    }
+    else{
+        return customResponse(res,400, false, "Invalid OTP", null)
+    }
+})
+
+
 
 export default authRouter;
