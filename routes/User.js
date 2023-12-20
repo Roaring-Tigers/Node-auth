@@ -2,6 +2,8 @@ import express from "express";
 import User from "../models/User.js";
 import customResponse from "../utilities/response.js";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from 'uuid';
+import checkLogin from "../middleware/checkLogin.js";
 
 
 const authRouter = express.Router();  
@@ -71,7 +73,10 @@ authRouter.post("/signup", async (req, res)=>{
         })  
         const nUser = await newUser.save() 
         if(nUser){
-            return customResponse(res, true, "User registered successfully", nUser)
+            let token = uuidv4();
+            nUser.token = token;
+            let updatedUser = await nUser.save();
+            return customResponse(res, true, "User registered successfully", updatedUser)
         }
        }
         
@@ -104,7 +109,10 @@ authRouter.post("/login", async (req, res)=>{
         // check hashed password:
        const isMatch = await bcrypt.compare(password, foundUser.password)
        if(isMatch){
-           return customResponse(res, true, "User logged in successfully", foundUser)
+        let token = uuidv4();
+        foundUser.token = token;
+        let updatedUser = await foundUser.save();
+           return customResponse(res, true, "User logged in successfully",  updatedUser)
        }
        else{
             return customResponse(res, false, "Invalid credentials", null)
@@ -122,5 +130,23 @@ authRouter.post("/login", async (req, res)=>{
 
 })
 
+
+
+authRouter.get("/secret1",checkLogin, async (req, res)=>{
+     customResponse(res, true, "Bhargav is working with Raw", req.user)
+})
+
+
+authRouter.get("/secret2", async (req, res)=>{
+    const {token} = req.headers
+      if(!token){
+          return customResponse(res, false, "Please provide token", null)
+      }
+      const foundUser = await User.findOne({token: token})
+      if(foundUser == null){
+          return customResponse(res, false, "Invalid token", null)
+      }
+      customResponse(res, true, "Bhargav is working with Raw", null)
+})
 
 export default authRouter;
