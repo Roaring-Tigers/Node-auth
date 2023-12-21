@@ -4,6 +4,7 @@ import customResponse from "../utilities/response.js";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import checkLogin from "../middleware/checkLogin.js";
+import parser from "../utilities/uploadToCloudinary.js";
 
 
 const authRouter = express.Router();  
@@ -53,6 +54,34 @@ const authRouter = express.Router();
 //      .catch(err => console.log(err))
 
 // })
+
+authRouter.post("/upload",parser.single('xyz'), async (req, res)=>{
+       console.log("I am here")
+        console.log("link",req.file.path)
+        res.json(req.file.path);
+})
+
+authRouter.post("/uploadMany",parser.array('xyz', 5), async (req, res)=>{
+    let linkArr = []  
+    for(let i=0;i<req.files.length;i++){
+        linkArr.push(req.files[i].path)
+    }
+    res.json(linkArr);
+})
+
+
+authRouter.post("/uploadManySingly",parser.fields([{name:"image1", maxCount: 1},{name:"image2", maxCount: 1}, {name:"image3", maxCount: 1} ]),  async (req, res)=>{
+    
+    // req.files["image1"][0].path 
+    // req.files["image2"][0].path
+    // req.files["image3"][0].path
+
+    res.json({image1: req.files["image1"][0].path, image2: req.files["image2"][0].path, image3: req.files["image3"][0].path});
+    
+})
+
+
+
 
 authRouter.post("/signup", async (req, res)=>{
     const {name, email, password, phone} =  req.body 

@@ -22,12 +22,15 @@ const UserSchema = new mongoose.Schema({
             required: true,
             trim: true,
     },
-
     token: {
             type: String,
     },
 
     verificationCode: {
+            type: String,
+    },
+
+    profile_pic: {
             type: String,
     },
     
