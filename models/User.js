@@ -36,6 +36,9 @@ const UserSchema = new mongoose.Schema({
 
     verificationCodeEmail: {
                 type: String,      
+    },
+    verificationTokenEmail: {
+         type: String,      
     }
     
 })

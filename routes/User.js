@@ -8,6 +8,13 @@ import parser from "../utilities/uploadToCloudinary.js";
 import awsUpload from "../utilities/uploadToAws.js";
 import sendEmail from "../utilities/sendEmail.js";
 
+import path from 'path';
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const authRouter = express.Router();  
 
 const generateOtp = () => {
@@ -119,14 +126,22 @@ authRouter.post("/signup", async (req, res)=>{
             nUser.token = token;
             let updatedUser = await nUser.save();
             // send email:
-            let otp = generateOtp();
-            nUser.verificationCodeEmail = otp;
+            // let otp = generateOtp();
+            // nUser.verificationCodeEmail = otp;
             await nUser.save();
+
+           let email_token = uuidv4();
+           nUser.verificationTokenEmail = email_token;
+
+           const verification_url = `https://4vzhs7kk-5000.inc1.devtunnels.ms/api/auth/verify-email-by-link?token=${email_token}`
+
+           await nUser.save();
+
             sendEmail({
                 name: nUser.name,
                 to: nUser.email,
-                subject: "Welcome to our website",
-                otp : otp,
+                subject: "Welcome to our website. Please Verify Your Email",
+                link: verification_url,
             })
             return customResponse(res,200, true, "User registered successfully", updatedUser)
         }
@@ -169,7 +184,25 @@ authRouter.post("/verify-email",checkLogin,  async (req, res)=>{
 
 
 authRouter.get("/verify-email-by-link",  async (req, res)=>{
-    res.json({"message": "Email verified successfully"})
+    let email_token = req.query.token;
+    console.log(email_token)
+    if(!email_token){
+        return customResponse(res,400, false, "Please provide token", null)
+    }
+    try{
+    const foundUser = await User.findOne({verificationTokenEmail: email_token})
+      if(foundUser == null){
+            return customResponse(res,400, false, "Invalid token", null)
+      }
+        foundUser.verificationTokenEmail = null;
+        let updatedUser = await foundUser.save();
+        // return customResponse(res,200, true, "Email verified successfully", updatedUser)
+        // res.sendFile("../templates/successPage.html")
+        res.sendFile(path.join(__dirname, "..", "templates", "successPage.html"))
+    }
+    catch(err){
+        customResponse(res,500, false, "Something went wrong", null)
+    }
 })
 
 

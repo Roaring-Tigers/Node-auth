@@ -29,18 +29,19 @@ const sendEmail = async (options) => {
     )
 
     // template emails:  - ejs
-    const templatePath = path.join(__dirname, "..", "templates", "mail1.ejs");
-    const template = fs.readFileSync(templatePath, "utf-8");
-    const htmlString = ejs.render(template,{
-        name: options.name,
-        otp: options.otp,
-    });
+    // const templatePath = path.join(__dirname, "..", "templates", "mail1.ejs");
+    // const template = fs.readFileSync(templatePath, "utf-8");
+    // const htmlString = ejs.render(template,{
+    //     name: options.name,
+    //     otp: options.otp,
+    // });
 
 
     // template emails:  - html
-    // let htmlString = fs.readFileSync("../templates/mail2.html", "utf-8");
-    // htmlString = htmlString.replaceAll("{{name}}", options.name);
-    // htmlString = htmlString.replaceAll("{{link}}", options.link);
+    const templatePath = path.join(__dirname, "..", "templates", "mail2.html");
+    let htmlString = fs.readFileSync(templatePath, "utf-8");
+    htmlString = htmlString.replaceAll("{{name}}", options.name);
+    htmlString = htmlString.replaceAll("{{link}}", options.link);
 
 
 
