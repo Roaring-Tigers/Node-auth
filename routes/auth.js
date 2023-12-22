@@ -1,48 +1,32 @@
+import express from "express";  
+import User from "../models/User.js";
+import customResponse from "../utilities/response.js";
+const router = express.Router(); 
+import sendEmail from "../utilities/sendEmail.js";
 
+router.post("/send", async (req, res)=>{
+    const {name, to, subject, text, link} = req.body;
 
+  const response = await sendEmail({name, to, subject, text, link}) 
+  console.log(response)
 
-authRouter.post("/signup", async (req, res)=>{
-    const {name, email, password, phone} =  req.body 
-
-    if(!name || !email || !password || !phone){
-        return customResponse(res, false, "Please fill all the fields", null)
-    }
-    try{
-       const foundUser = await User.findOne({email: email})
-       if(foundUser == null){
-           
-        // hash the password:
-        const hashedPassword = await bcrypt.hash(password, 10)
-        const newUser = new User({
-            name, email, password:hashedPassword, phone
-        })  
-        const nUser = await newUser.save() 
-        if(nUser){
-            return customResponse(res, true, "User registered successfully", nUser)
-        }
-       }
-        
-       else{
-        return customResponse(res, false, "User already exists", null)
-       }
-
-    }
-
-    catch(err){
-        console.log(err)
-    }
-    
-              
+    customResponse(res, 200, "Email sent successfully", response);
 })
 
 
-// async function hello() {
-//     try{
-//             const response = await axios.get("http://localhost:5000/api/auth/signup")
-//             console.log(response)
-//     }
-//     catch(err){
-//         console.log(err)
-//     }
-       
-// }
+
+// router.post("/send-top-by-mail", async (req, res)=>{
+//     const {name, to, subject, text, link} = req.body;
+
+//   const response = await sendEmail({name, to, subject, text, link}) 
+//   console.log(response)
+
+//     customResponse(res, 200, "Email sent successfully", response);
+// })
+
+export default router;
+
+
+
+// verfication otp
+

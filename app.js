@@ -5,6 +5,7 @@ import express from 'express';
 import "./database.js";
 import User from './models/User.js';
 import authRouter from './routes/User.js';
+import router from './routes/auth.js';
 import cors from 'cors';
 
 
@@ -18,6 +19,8 @@ app.use(cors());
 app.use(express.json()); // for parsing json
 
 app.use("/api/auth/" , authRouter);
+
+app.use("/api/" , router);
 
 
 

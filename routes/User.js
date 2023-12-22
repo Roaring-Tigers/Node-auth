@@ -5,9 +5,20 @@ import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import checkLogin from "../middleware/checkLogin.js";
 import parser from "../utilities/uploadToCloudinary.js";
-
+import awsUpload from "../utilities/uploadToAws.js";
+import sendEmail from "../utilities/sendEmail.js";
 
 const authRouter = express.Router();  
+
+const generateOtp = () => {
+    let otp = "";
+    // let char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    for(let i=0;i<6;i++){
+        otp += Math.floor(Math.random()*10);
+    }
+    return otp;
+
+}
 
 
 
@@ -80,6 +91,10 @@ authRouter.post("/uploadManySingly",parser.fields([{name:"image1", maxCount: 1},
     
 })
 
+authRouter.post("/uploadToS3",awsUpload.single('img'), async (req, res)=>{
+       res.json(req.file.location);
+})
+
 
 
 
@@ -103,6 +118,16 @@ authRouter.post("/signup", async (req, res)=>{
             let token = uuidv4();
             nUser.token = token;
             let updatedUser = await nUser.save();
+            // send email:
+            let otp = generateOtp();
+            nUser.verificationCodeEmail = otp;
+            await nUser.save();
+            sendEmail({
+                name: nUser.name,
+                to: nUser.email,
+                subject: "Welcome to our website",
+                otp : otp,
+            })
             return customResponse(res,200, true, "User registered successfully", updatedUser)
         }
        }
@@ -118,6 +143,33 @@ authRouter.post("/signup", async (req, res)=>{
     }
     
               
+})
+
+
+authRouter.post("/verify-email",checkLogin,  async (req, res)=>{
+    const {otp} = req.body
+    if(!otp){
+        return customResponse(res,400, false, "Please fill all the fields", null)
+    }
+   
+    let savedOtp = req.user.verificationCodeEmail;
+    try{
+        if(savedOtp == otp){
+            req.user.verificationCodeEmail = null;
+            let updatedUser = await req.user.save();
+            return customResponse(res,200, true, "Email verified successfully", updatedUser)
+        }
+    }
+    catch(err){
+        customResponse(res,500, false, "Something went wrong", null)
+    }
+    
+})
+
+
+
+authRouter.get("/verify-email-by-link",  async (req, res)=>{
+    res.json({"message": "Email verified successfully"})
 })
 
 

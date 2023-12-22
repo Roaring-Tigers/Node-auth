@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema({
     profile_pic: {
             type: String,
     },
+
+    verificationCodeEmail: {
+                type: String,      
+    }
     
 })
 

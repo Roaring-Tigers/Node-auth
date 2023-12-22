@@ -1,3 +1,5 @@
+// // npm i multer cloudinary multer-s3 multer-storage-cloudinary
+
 import {v2 as cloudinary} from 'cloudinary'; 
 // const { CloudinaryStorage } = require('multer-storage-cloudinary');
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
