@@ -315,3 +315,18 @@ authRouter.patch("reset-password", async (req, res)=>{})
 
 
 export default authRouter;
+
+
+
+
+
+// M: JWt +otp  => frontend
+
+// T: passport js => google login
+
+// W: instagram app (1 day backend)  // background process
+
+// Th: 1 day day frontend 
+
+// F: Razorpay payment gateway (1 day backend) // background process
+
